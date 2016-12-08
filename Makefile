@@ -7,9 +7,12 @@ RELEASE_DIR=bin
 DEVTOOL_DIR=_devtools
 REVISION=$(shell git rev-parse --verify HEAD | cut -c-6)
 
-.PHONY: clean build build-linux-amd64 build-linux-386 build-darwin-amd64 build-darwin-386 build-windows-amd64 build-windows-386 $(RELEASE_DIR)/$(EXECUTABLE_NAME)_$(GOOS)_$(GOARCH) all
+.PHONY: test clean build build-linux-amd64 build-linux-386 build-darwin-amd64 build-darwin-386 build-windows-amd64 build-windows-386 $(RELEASE_DIR)/$(EXECUTABLE_NAME)_$(GOOS)_$(GOARCH) all
 
-all: installdeps build-linux-amd64 build-linux-386 build-darwin-amd64 build-darwin-386 build-windows-amd64 build-windows-386
+all: test install-deps build-linux-amd64 build-linux-386 build-darwin-amd64 build-darwin-386 build-windows-amd64 build-windows-386
+
+test:
+	@go test | tee -a log
 
 build: $(RELEASE_DIR)/$(EXECUTABLE_NAME)_$(GOOS)_$(GOARCH)
 
@@ -50,8 +53,11 @@ endif
 
 glide: $(DEVTOOL_DIR)/$(GOOS)/$(GOARCH)/glide
 
-installdeps: glide
+install-deps: glide
 	@PATH=$(DEVTOOL_DIR)/$(GOOS)/$(GOARCH):$(PATH) glide install
+
+fmt:
+	@go fmt && go vet && golint -min_confidence=0.1
 
 clean:
 	rm -rf $(RELEASE_DIR)/*
